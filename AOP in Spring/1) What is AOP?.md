@@ -141,7 +141,7 @@ public class UserServiceTX implements UserService {
 
 - 횡단 관심사는 트랜잭션 기능을 핵심 관심사 앞뒤에 배치를 하였고, 핵심 관심사는 유연한 확장을 위해 UserService 인터페이스에 위임한다.
 
-<p align="center"><img src="../images/oop_2.png" width="600"></p>
+<p align="center"><img src="../images/oop_2.png" width="800"></p>
 
 - 그림으로 보면 위와 유사하다. 다만, 기능의 명세를 나타내는 UserService 인터페이스의 upgradeLevels()는 구현 객체인 UserServiceImpl에 위임해 주어야 하므로 기존의 의존 관계를 다음과 같이 변경해야 한다.
 
