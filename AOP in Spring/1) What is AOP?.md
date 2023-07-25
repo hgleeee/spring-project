@@ -137,7 +137,8 @@ public class UserServiceTX implements UserService {
         // 트랜잭션 종료
     }
 }
- 
+```
+
 - 횡단 관심사는 트랜잭션 기능을 핵심 관심사 앞뒤에 배치를 하였고, 핵심 관심사는 유연한 확장을 위해 UserService 인터페이스에 위임한다.
 
 <p align="center"><img src="../images/oop_2.png" width="600"></p>
