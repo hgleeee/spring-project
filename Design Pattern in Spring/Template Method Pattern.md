@@ -29,7 +29,7 @@ GOF의 디자인 패턴에 의하면, 템플릿 메소드 패턴을 아래와 �
 
 ## 템플릿 메소드 패턴의 예제
 - 두 개의 라면을 끓이는 과정이 다음과 같다고 가정하자.
-<p align="center"><img src="../images/template_method_pattern_ex_1.png" width="400"></p>
+<p align="center"><img src="../images/template_method_pattern_ex_1.png" width="600"></p>
 
 - 이를 생각나는 대로 코딩하면 아래처럼 작성할 수 있다.
 
