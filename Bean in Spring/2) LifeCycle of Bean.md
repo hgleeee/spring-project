@@ -20,11 +20,11 @@
 - 가장 처음에는 Spring IoC 컨테이너가 만들어지는 과정이 일어난다.
 - 위의 그림은 SpringBoot에서 Component-Scan으로 Bean 등록을 시작하는 과정을 그림으로 표현한 것이다.
 
-<p align="center"><img src="../images/spring_config.png" width="600"></p>
+<p align="center"><img src="../images/spring_config.png" width="800"></p>
 
 - 위와 같이 @Configuration 방법을 통해 Bean으로 등록할 수 있는 어노테이션들과 설정파일들을 읽어 IoC 컨테이너 안에 Bean으로 등록시킨다.
 
-<p align="center"><img src="../images/spring_config_2.png" width="600"></p>
+<p align="center"><img src="../images/spring_config_2.png" width="800"></p>
 
 - 그리고 의존 관계를 주입하기 전의 준비 단계가 존재한다.
 - 이 단계에서 객체의 생성이 일어난다. 여기서 한 가지 알고 넘어가야 할 부분이 있다.
