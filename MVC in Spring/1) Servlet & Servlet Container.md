@@ -26,7 +26,7 @@ public class HelloServlet extends HttpServlet {
 - 사용자가 URL을 입력하면 요청이 서블릿 컨테이너로 전송된다.
 - 요청을 전송받은 서블릿 컨테이너는 HttpRequest, HttpResponse 객체를 생성한다.
 - 사용자가 요청한 URL이 어느 서블릿에 대한 요청인지 찾는다.
- - 위 예제에서는 helloServlet을 찾게 된다.
+     - 위 예제에서는 helloServlet을 찾게 된다.
 - 서블릿의 service() 메소드를 호출한 후 클라이언트의 GET, POST 여부에 따라 doGet(), doPost() 메소드를 호출한다.
 - 동적 페이지를 생성한 후 HttpServletResponse 객체에 응답을 보낸다.
 - 클라이언트에 최종 결과를 응답한 후 HttpServletRequest, HttpServletResponse 객체를 소멸한다.
