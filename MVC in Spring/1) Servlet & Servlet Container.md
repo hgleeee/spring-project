@@ -13,7 +13,7 @@
 - 서블릿과 웹 서버가 통신할 수 있는 손쉬운 방법을 제공한다.
 - 만약 해당 유저의 이름 값을 FORM을 통해 입력받는다고 가정해보자. 그러면 아래와 같은 수많은 작업이 필요하다.
 
-<p align="center"><img src="../images/servlet_web_server_connection.png" width="700"></p>
+<p align="center"><img src="../images/servlet_web_server_connection.png" width="600"></p>
  
 - FORM 인증을 하면 HTTP 메시지가 전송되는데 그것을 읽어들이기 위해 여러 가지 과정을 거쳐야 하고 응답하기 위해서도 또 번거로운 과정들을 거쳐야 한다.
   - 사실 중요하게 해야할 일은 비즈니스 로직인데도 말이다.
@@ -51,7 +51,7 @@ public class RequestBodyStringServlet extends HttpServlet {
 - 그 이후 HttpServlet에 상속을 받아서 service() 메소드를 재정의함으로써 개발자가 비로소 비즈니스 로직을 작성할 수 있다.
 
  
-<p align="center"><img src="../images/servlet_hierarchy.png" width="600"></p>
+<p align="center"><img src="../images/servlet_hierarchy.jpg" width="600"></p>
 
 - 참고로 JDK에서 정의된 서블릿의 계층 구조는 위와 같다.
 
