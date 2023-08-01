@@ -1,13 +1,54 @@
-# 서블릿과 서블릿 컨테이너
+# Servlet & Servlet Container
+## Servlet
+- 서블릿은 클라이언트 요청을 처리하고, 그 결과를 다시 클라이언트에게 전송하는 Servlet 클래스의 구현 규칙을 지킨 자바 프로그램이다.
+- 이전의 웹 프로그램들은 클라이언트의 요청에 대한 응답으로 만들어진 페이지를 넘겨 주었으나, 현재는 동적인 페이지를 가공하기 위해서 웹 서버가 다른 곳에 도움을 요청한 후 가공된 페이지를 넘겨주게 된다.
+- 이 때 서블릿을 사용하게 되면 웹 페이지를 동적으로 생성하여 클라이언트에게 반환해줄 수 있다.
 
-## 서블릿
-- 서블릿은 Java를 이용하여 웹 페이지를 동적으로 생성하는 서버 측 프로그램이다.
-- 예를 들어, '안녕하세요, xxx님' 과 같은 메시지를 브라우저에 띄울 때 들어오는 유저마다 다른 이름을 출력하는 것을 동적 페이지라고 할 수 있다.
+### Servlet의 예시
+```java
+@WebServlet(name = "helloServlet", urlPatterns = "/hello")
+public class HelloServlet extends HttpServlet {
+
+    @Override
+    protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        // 애플리케이션 로직
+    }
+}
+```
+
+- urlPatterns("/hello") 의 URL이 호출되면 서블릿 코드가 실행된다.
+- HttpServletRequest를 통해 HTTP 요청 정보를 사용할 수 있다.
+- HttpServletResponse를 통해 HTTP 응답 정보를 사용할 수 있다.
+
+### Servlet의 동작 방식
+<p align="center"><img src="../images/servlet_process.png" width="800"></p>
+
+- 사용자가 URL을 입력하면 요청이 서블릿 컨테이너로 전송된다.
+- 요청을 전송받은 서블릿 컨테이너는 HttpRequest, HttpResponse 객체를 생성한다.
+- 사용자가 요청한 URL이 어느 서블릿에 대한 요청인지 찾는다.
+ - 위 예제에서는 helloServlet을 찾게 된다.
+- 서블릿의 service() 메소드를 호출한 후 클라이언트의 GET, POST 여부에 따라 doGet(), doPost() 메소드를 호출한다.
+- 동적 페이지를 생성한 후 HttpServletResponse 객체에 응답을 보낸다.
+- 클라이언트에 최종 결과를 응답한 후 HttpServletRequest, HttpServletResponse 객체를 소멸한다.
+ 
+### Servlet의 생명 주기
+<p align="center"><img src="../images/servlet_lifecycle.png" width="600"></p>
+
+- 클라이언트 요청이 들어오면 서블릿 컨테이너는 서블릿이 메모리에 있는지 확인한다.
+  - 메모리에 없다면 init() 메소드를 호출하여 적재한다.
+- 클라이언트 요청에 따라서 service() 메소드를 통해 요청에 대한 응답이 doGet(), doPost()로 분기한다.
+- 서블릿 컨테이너가 서블릿에 종료 요청을 하면 destory() 메소드가 호출된다.
+  - 종료 시 처리해야 하는 작업은 destory() 메소드를 오버라이딩하여 구현하면 된다.
+  - destory() 메소드가 끝난 서블릿 인스턴스는 GC에 의해 제거된다.
+ 
+### 일반 자바 객체와의 차이점
+- JVM에서 호출 방식은 서블릿과 일반 클래스 모두 같으나, 서블릿은 main() 메소드로 직접 호출되지 않고, 웹 컨테이너(Servlet Container)에 의해 실행된다.
+- 컨테이너가 web.xml을 읽고, 서블릿 클래스를 클래스 로더에 등록하는 절차를 밟는다.
 
 ## 서블릿 컨테이너
-- 서블릿 컨테이너는 구현되어 있는 Servlet 클래스의 규칙에 맞게 서블릿 객체를 생성, 초기화, 호출 종료하는 생명 주기를 관리한다.
-- 톰캣처럼 서블릿을 지원하는 WAS를 서블릿 컨테이너라고 할 수 있다.
-- 이 때, 서블릿 객체는 빈과 마찬가지로 싱글톤으로 관리된다. 그 외에도 서블릿 컨테이너는 제공하는 기능이 많다.
+- 서블릿 컨테이너는 구현되어 있는 Servlet 클래스의 규칙에 맞게 서블릿 객체를 생성, 초기화, 호출, 종료하는 생명 주기를 관리한다. 서블릿 컨테이너는 클라이언트의 요청을 받고 응답할 수 있도록 웹 서버와 소켓으로 통신한다.
+
+Tomcat은 웹 애플리케이션(WAS) 중 하나로, Servlet Container 기능을 제공하고 있다. 혹자는 Tomcat을 서블릿 컨테이너라고 부르긴 하지만, 엄밀히 말하면 내장 웹 서버 등의 부가 기능도 제공하므로 WAS라고 부르는 것이 좋다고 생각한다. (그래도 인터넷에서 Tomcat은 서블릿 컨테이너라고 많이 부르니, 적당히 이해하자.)
 
 ### 1) 통신 지원
 - 서블릿과 웹 서버가 통신할 수 있는 손쉬운 방법을 제공한다.
