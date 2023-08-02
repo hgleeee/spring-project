@@ -103,7 +103,7 @@ try {
 - 그런데 이 3번의 접근을 하나의 Connection, 즉 하나의 Transaction 이 아닌 여러 개의 Transaction으로 처리하게 된다면 예상치 못한 상황이 발생할 수 있다. 
 - 이를 해결하기 위해 TransactionSynchronizationManager는 ThreadLocal에 Connection을 저장해두고 DB에 접근할 때마다 동일한 Connection을 사용할 수 있도록 보장해준다. 
 
-#### 과정
+### 동작 과정
 <p align="center"><img src="../images/transaction_synchronization_manager.png" width="800"></p>
 
 1. Transaction 시작
