@@ -24,73 +24,64 @@ public interface HandlerExceptionResolver {
   - 그래서 내부적으로 DefaultErrorAttributes를 제외하고 직접 예외를 처리하는 3가지 ExceptionResolver들을 HandlerExceptionResolverComposite로 모아서 관리한다.
   - 즉, 컴포지트 패턴을 적용해 실제 예외 처리기들을 따로 관리하는 것이다.
 
+<p align="center"><img src="../images/composite_pattern.png" width="600"></p>
 
- 
+## ExceptionResolver 동작 방식
+- Spring은 아래와 같은 도구들로 ExceptionResolver를 동작시켜 에러를 처리할 수 있는데, 각각의 방식에 대해 자세히 살펴보도록 하자.
 
- 
+```
+1) ResponseStatus
+2) ResponseStatusException
+3) ExceptionHandler
+4) ControllerAdvice, RestControllerAdvice
+```
 
-Spring은 아래와 같은 도구들로 ExceptionResolver를 동작시켜 에러를 처리할 수 있는데, 각각의 방식 대해 자세히 살펴보도록 하자.
+### 1) @ResponseStatus 
+- 어노테이션 이름에서 예측 가능하듯이 @ResponseStatus는 에러 HTTP 상태를 변경하도록 도와주는 어노테이션이다.
+- @ResponseStatus는 다음과 같은 경우들에 적용할 수 있다.
+  - Exception 클래스 자체
+  - 메소드에 @ExceptionHandler와 함께
+  - 클래스에 @RestControllerAdvice와 함께
+- 예를 들어 우리가 만든 예외 클래스에 다음과 같이 @ResponseStatus로 응답 상태를 지정해줄 수 있다.
 
-ResponseStatus
-ResponseStatusException
-ExceptionHandler
-ControllerAdvice, RestControllerAdvice
- 
-
- 
-
- 
-
-[ @ResponseStatus ]
-어노테이션 이름에서 예측가능하듯이 @ResponseStatus는 에러 HTTP 상태를 변경하도록 도와주는 어노테이션이다. @ResponseStatus는 다음과 같은 경우들에 적용할 수 있다.
-
-Exception 클래스 자체
-메소드에 @ExceptionHandler와 함께
-클래스에 @RestControllerAdvice와 함께
- 
-
-예를 들어 우리가 만든 예외 클래스에 다음과 같이 @ResponseStatus로 응답 상태를 지정해줄 수 있다.
-
+```java
 @ResponseStatus(value = HttpStatus.NOT_FOUND)
 public class NoSuchElementFoundException extends RuntimeException {
   ...
 }
- 
+```
 
- 
+- 그러면 ResponseStatusExceptionResolver가 지정해준 상태로 에러 응답이 내려가도록 처리한다.
 
-그러면 ResponseStatusExceptionResolver가 지정해준 상태로 에러 응답이 내려가도록 처리한다.
-
+```
 {
     "timestamp": "2021-12-31T03:35:44.675+00:00",
     "status": 404,
     "error": "Not Found",
     "path": "/product/5000"
 }
+```
+
+- 하지만 에러 응답에서 볼 수 있듯 이는 BasicErrorController에 의한 응답이다.
+- 즉, @ResponseStatus를 처리하는 ResponseStatusExceptionResolver는 WAS까지 예외를 전달시키며, 복잡한 WAS의 에러 요청 전달이 진행되는 것이다.
+
+### @ResponseStatus의 한계점
+1. 에러 응답의 내용(Payload)를 수정할 수 없음(DefaultErrorAttributes를 수정하면 가능하긴 함)
+2. 예와 클래스와 강하게 결합되어 같은 예외는 같은 상태와 에러 메세지를 반환함
+3. 별도의 응답 상태가 필요하다면 예외 클래스를 추가해야 됨
+4. WAS까지 예외가 전달되고, WAS의 에러 요청 전달이 진행됨
+5. 외부에서 정의한 Exception 클래스에는 @ResponseStatus를 붙여줄 수 없음
  
+- 물론 프로퍼티 설정이나 에러 응답 커스터마이징을 통해 일부 문제를 해결할 수 있고, 메세지 소스를 사용해 다국어 처리도 할 수 있다.
+- 하지만 개발자가 원하는대로 에러를 처리하는 것은 어려운데, 이러한 문제를 해결하기 위해서는 다른 방법을 사용해야 한다.
 
- 
+### 2) ResponseStatusException 
+- 외부 라이브러리에서 정의한 코드는 우리가 수정할 수 없으므로 @ResponseStatus를 붙여줄 수 없다.
+- Spring5에는 @ResponseStatus의 프로그래밍적 대안으로써 손쉽게 에러를 반환할 수 있는 ResponseStatusException가 추가되었다.
+- ResponseStatusException는 HttpStatus와 함께 선택적으로 reason과 cause를 추가할 수 있고, 언체크 예외을 상속받고 있어 명시적으로 에러를 처리해주지 않아도 된다.
+- 이러한 ResponseStatusException은 다음과 같이 사용할 수 있다.
 
-하지만 에러 응답에서 볼 수 있듯이 이는 BasicErrorController에 의한 응답이다. 즉, @ResponseStatus를 처리하는 ResponseStatusExceptionResolver는 WAS까지 예외를 전달시키며, 복잡한 WAS의 에러 요청 전달이 진행되는 것이다. 이러한 @ResponseStatus는 다음과 같은 한계점들을 가지고 있다.
-
-에러 응답의 내용(Payload)를 수정할 수 없음(DefaultErrorAttributes를 수정하면 가능하긴 함)
-예와 클래스와 강하게 결합되어 같은 예외는 같은 상태와 에러 메세지를 반환함
-별도의 응답 상태가 필요하다면 예외 클래스를 추가해야 됨
-WAS까지 예외가 전달되고, WAS의 에러 요청 전달이 진행됨
-외부에서 정의한 Exception 클래스에는 @ResponseStatus를 붙여줄 수 없음
- 
-
-물론 프로퍼티 설정이나 에러 응답 커스터마이징을 통해 일부 문제를 해결할 수 있고, 메세지 소스를 사용해 다국어 처리도 할 수 있다. 하지만 개발자가 원하는대로 에러를 처리하는 것은 어려운데, 이러한 문제를 해결하기 위해서는 다른 방법을 사용해야 한다.
-
- 
-
- 
-
- 
-
-[ ResponseStatusException ]
-외부 라이브러리에서 정의한 코드는 우리가 수정할 수 없으므로 @ResponseStatus를 붙여줄 수 없다. Spring5에는 @ResponseStatus의 프로그래밍적 대안으로써 손쉽게 에러를 반환할 수 있는 ResponseStatusException가 추가되었다. ResponseStatusException는 HttpStatus와 함께 선택적으로 reason과 cause를 추가할 수 있고, 언체크 예외을 상속받고 있어 명시적으로 에러를 처리해주지 않아도 된다. 이러한 ResponseStatusException은 다음과 같이 사용할 수 있다.
-
+```java
 @GetMapping("/product/{id}")
 public ResponseEntity<Product> getProduct(@PathVariable String id) {
     try {
@@ -99,7 +90,7 @@ public ResponseEntity<Product> getProduct(@PathVariable String id) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Item Not Found");
     }
 }
- 
+```
 
  
 
