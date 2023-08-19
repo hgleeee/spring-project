@@ -40,163 +40,142 @@
 
  
 ## HttpSession
-여기서 알아볼 것은 Spring MVC에서의 HttpSession을 알아보도록 하겠다.
+- Spring MVC에서의 HttpSession을 알아보자.
 
-https://www.baeldung.com/spring-mvc-session-attributes
-
- 
-Session Attributes in Spring MVC | Baeldung
-
-Explore the different ways to store attributes in a session with Spring MVC.
-
-www.baeldung.com
-Session 생성
- 
-
-1. @Autowired 사용
+### Session 생성
+#### 1) @Autowired 사용
+```java
 @Controller
 public class LoginController {
-			@Autowired
-			private HttpSession session;
+
+	@Autowired
+	private HttpSession session;
  
-			@PostMapping("/login")
-	    public String login(MemberLoginDto memberLoginDto, Model model){
+	@PostMapping("/login")
+	public String login(MemberLoginDto memberLoginDto, Model model) {
 	       
-	        Member loginMember = loginService.login(memberLoginDto.getUserId(), memberLoginDto.getPassword());
+		Member loginMember = loginService.login(memberLoginDto.getUserId(), memberLoginDto.getPassword());
+		
+		if (loginMember == null) {
+		    result.reject("loginFail", "아이디 또는 비밀번호가 맞지 않습니다.");
+		    return "member/loginForm";
+		}
 	
-	        if (loginMember == null) {
-	            result.reject("loginFail", "아이디 또는 비밀번호가 맞지 않습니다.");
-	            return "member/loginForm";
-	        }
+		// 로그인 성공 처리
+		// 세션이 있으면 있는 세션 반환, 없으면 신규 세션을 생성
+		HttpSession session = request.getSession();
+		// 세션에 로그인 회원 정보 보관
+		session.setAttribute("loginMember", loginMember);
 	
-	        //로그인 성공 처리
-	        //세션이 있으면 있는 세션 반환, 없으면 신규 세션을 생성
-	        HttpSession session = request.getSession();
-	        //세션에 로그인 회원 정보 보관
-	        session.setAttribute("loginMember", loginMember);
-	
-	        model.addAttribute("member",loginMember);
-	        return "/member/memberInfo";
-	    }
+		model.addAttribute("member", loginMember);
+		return "/member/memberInfo";
+    	}
 }
-HttpSession을 빈주입을 받는 것만으로는 Session이 생성되지 않는다. 해당 메서드의 setAttribute()나 getAttribute()이 호출되는 시점에 서블릿 컨테이너에서 session을 받을 수 있다.
+```
 
- 
+- HttpSession을 빈 주입을 받는 것만으로는 Session이 생성되지 않는다.
+- 해당 메서드의 setAttribute()나 getAttribute()이 호출되는 시점에 서블릿 컨테이너에서 session을 받을 수 있다.
 
-2. 메서드 주입
+#### 2) 메서드 주입
+```java
 @Controller
 public class LoginController {
 			
-			@PostMapping("/login")
-	    public String login(MemberLoginDto memberLoginDto, HttpSession session , Model model){
-	       
-	        Member loginMember = loginService.login(memberLoginDto.getUserId(), memberLoginDto.getPassword());
+	@PostMapping("/login")
+    	public String login(MemberLoginDto memberLoginDto, HttpSession session, Model model) {
+       
+		Member loginMember = loginService.login(memberLoginDto.getUserId(), memberLoginDto.getPassword());
 	
-	        if (loginMember == null) {
-	            result.reject("loginFail", "아이디 또는 비밀번호가 맞지 않습니다.");
-	            return "member/loginForm";
-	        }
+		if (loginMember == null) {
+		    result.reject("loginFail", "아이디 또는 비밀번호가 맞지 않습니다.");
+		    return "member/loginForm";
+		}
 	
-	        //로그인 성공 처리
-	        //세션이 있으면 있는 세션 반환, 없으면 신규 세션을 생성
-	        HttpSession session = request.getSession();
-	        //세션에 로그인 회원 정보 보관
-	        session.setAttribute("loginMember", loginMember);
+		// 로그인 성공 처리
+		// 세션이 있으면 있는 세션 반환, 없으면 신규 세션을 생성
+		HttpSession session = request.getSession();
+		// 세션에 로그인 회원 정보 보관
+		session.setAttribute("loginMember", loginMember);
 	
-	        model.addAttribute("member",loginMember);
-	        return "/member/memberInfo";
-	    }
+		model.addAttribute("member", loginMember);
+		return "/member/memberInfo";
+    	}
 }
-1번과 방식이 비슷하지만 파라미터로 받게된다면, login메서드가 실행되는 시점에 Session을 서블릿 컨테이너로 부터 전달 받게 됩니다.
+```
+- 1번과 방식이 비슷하지만 파라미터로 받게된다면, login 메서드가 실행되는 시점에 Session을 서블릿 컨테이너로부터 전달받게 된다.
 
- 
-
-3. @SessionAttribute, @MudelAttribute로 주입
+#### 3) @SessionAttribute, @ModelAttribute로 주입
+```java
 @Controller
 @SessionAttributes("loginMember")
 public class LoginController {
 			
-		@GetMapping("/")
-    public String loginForm(@ModelAttribute("loginMember")Member member, Model model){
+	@GetMapping("/")
+    	public String loginForm(@ModelAttribute("loginMember") Member member, Model model) {
  
-        if(member != null){
-            model.addAttribute("member",member);
-            return "/member/memberInfo";
-        }
-        model.addAttribute("memberLoginDto",new MemberLoginDto());
-        return "/member/loginForm";
-    }
+        	if (member != null){
+	            model.addAttribute("member", member);
+	            return "/member/memberInfo";
+	        }
+	        model.addAttribute("memberLoginDto", new MemberLoginDto());
+	        return "/member/loginForm";
+    	}
 }
-해당방식은 위의 두방식과 조금은 다른 방식으로 사용 한다. 이미 생성되어있는 세션이 있을떄 Get요청을 하면서 동일한 키(loginMember)를 조회하여 Member 파라미터로 전달 받게 된다.
+```
 
- 
+- 해당 방식은 위의 두 방식과 조금은 다른 방식으로 사용한다.
+- 이미 생성되어 있는 세션이 있을 때 Get 요청을 하면서 동일한 키(loginMember)를 조회하여 Member 파라미터로 전달받게 된다.
 
- 
+### 세션유지
+- request 시 Header에 SessionId가 포함되어 전달된다면 서블릿 컨테이너는 세션을 발급하지 않고 해당 SessionId에 해당하는 세션을 전달하게 되고,
+	- Sessionid가 포함되지 않는다면 HttpSession을 요구하는 모든 요청에 대해 새로운 Session을 발급한다.
+- Spring에서는 기본 서블릿 컨테이너를 Tomcat으로 사용하고 있기 때문에 톰캣 기준으로 생각해야 한다.
+- Tomcat의 경우 SessionID를 JSESSIONID라는 키의 쿠키를 생성하여 클라이언트에게 전달하고
+	- 클라이언트는 JSESSION이 담긴 쿠키를 헤더에 포함하여 인증을 유지한다.
+ - 실제로 어떤 형식으로 전달하는지 알아보자.
 
- 
+<p align="center"><img src="../images/session_main_1" width="700"></p>
 
- 
+- 로그인을 했을 때 Response Header로 JSESSIONID를 가진 쿠키를 전달받은 것을 볼 수 있다.
 
-세션유지
-Request시 Heder에 SessionId가 포함 되어 전달된다면 서블릿 컨테이너는 세션을 발급하지 않고 해당 SessionId에 해당하는 세션을 전달하게 되고, Sessionid가 포함되지 않는다면 HttpSession을 요구하는 모든 요청에 대해 새로운 Session을 발급한다. Spring에서는 기본 서블릿 컨테이너를 Tomcat으로 사용하고 있기때문에 톰캣기준의 내용이다.
-
-Tomcat의 경우 SessionID를 JSESSIONID라는 키의 쿠키를 생성하여 클라이언트에게 전달 하고 클라이언트는 JSESSION이 담긴 쿠키를 헤더에 포함하여 인증을 유지한다. 실제로 어떤 형식으로 전달하는지 알아보자. 아래는 프로젝트 중 확인한 내용이다.
-
-
-로그인을 했을때 Response Header로 JSESSIONID를 가진 쿠키를 전달 받는 것을 볼 수 있다
-
-
- 
-
- 
-
- 
-
-JSESSION
-JSESSION은 어떻게 생성될까?
-
-JSSION은 HttpServletRequest의 getSession의 옵션에 따라 자동 생성이 된다. 그렇다면 먼저HttpServletRequest 인터페이스에 있는 getSession을 추적해보자
-
- 
-
- 
-
- 
+<p align="center"><img src="../images/session_main_2" width="700"></p>
 
 
-HttpServletRequest 인터페이스의 getSession 구현체는 아래와 같이 확인 된다. 우리는 이것들 중 ApplicaionHttpRequest를 추적하여본다.
+### JSESSION
+#### JSESSION은 어떻게 생성될까?
+<p align="center"><img src="../images/jsession_1" width="500"></p>
 
- 
+- JSSESSION은 HttpServletRequest의 getSession의 옵션에 따라 자동 생성이 된다.
+- 그렇다면 먼저 HttpServletRequest 인터페이스에 있는 getSession을 추적해보자.
+	- HttpServletRequest 인터페이스의 구현체들 중 ApplicaionHttpRequest를 확인해보자.
 
- 
+<p align="center"><img src="../images/jsession_2" width="500"></p>
 
+- 위는 ApplicaionHttpRequest에 있는 getSession의 구현코드 중 일부이다.
+- ApplicationHttpRequest의 부모 클래스는 HttpServletRequestWrapper이기 때문에 HttpServletRequestWrapper의 getSession을 찾아가보자.
 
-위는 ApplicaionHttpRequest에 있는 getSession의 구현코드 중 일부이다.
+<p align="center"><img src="../images/jsession_3" width="500"></p>
 
-ApplicaionHttpRequest의 부모클래스는HttpServletRequestWrapper 이기 때문에
+- HttpServletRequestWrapper 에서는 HttpServletRequest 의 getSession을 호출하고 일부 생략하자면 HttpServletRequest에는 request의 getSession을 호출하게 된다.
 
-HttpServletRequestWrapper 의 getSession을 찾아간다.
+<p align="center"><img src="../images/jsession_4" width="500"></p>
 
- 
+- Request의 getSession 구현이고 아래는 doGetSession의 일부 코드이다.
 
- 
+<p align="center"><img src="../images/jsession_5" width="500"></p>
 
- 
+- 세션을 만드는 코드이다.
+- 해당 세션을 만드는 코드는 Manager 인터페이스를 상속 받은 ManagerBase라는 구현체에 구현되어 있다.
 
+<p align="center"><img src="../images/jsession_6" width="600"></p>
 
-HttpServletRequestWrapper 에서는 HttpServletRequest 의 getsession을 호출하고 일부 생략하자면
+- 위와 같이 구현되어 있는데 여기서 JSESSIONID를 만드는 방법도 볼 수 있다.
+- JSESSIONID는 StandardSessionGenerator에서 생성하게 된다.
 
-HttpServletRequest에는 Request의 getSession을 호출하게 된다.
+### 기존 Session 보관
+<p align="center"><img src="../images/jsession_7" width="500"></p>
 
- 
-
- 
-
- 
-
-
-Request의 getSession 구현이고 아래는 doGetSession의 일부 코드이다.
-
+- 위의 과정에서 Request.doGetSession에서 m.findSession 부분을 따라가면 아래와 같이 ManagerBase에서는 세션을 Map을 이용해서 관리를 하고 있고, JSESSIONID가 들어오면 그에 맞는 Session을 반환하도록 되어 있다.
  
 
  
@@ -204,20 +183,7 @@ Request의 getSession 구현이고 아래는 doGetSession의 일부 코드이다
  
 
 
-세션을 만드는 코드가 있다. 이 세션을 만드는 코드는 Manger 인터페이스를 상속 받은 ManagerBase라는 구현체에 구현 되어 있다.
 
- 
-
- 
-
- 
-
-
-위와 같이 구현 되어 있는데 여기서 JSESSIONID를 만드는 방법도 볼 수 있었다.
-
-JSESSIONID는 StandardSessionGenerator에서 생성하게되는데 방법은 아래와 같다.
-
-16Byte의 랜덤 값(SHA1PRNGE또는 각 플랫폼의 기본 난수 생성기) 을 16진수의 String으로 변환하여 route로 받느 값이 있는경우 뒤에 “.route”를 추가하게 되고 그렇지 않을 경우 + “.jvmRoute”을 추가하게 된다. 여기서Route나 jvmRoute는 서블릿 컨테이너에 접속한 사용자를 구분하는 값이 되는데 이를 구현한 코드를 아래와 같이 확인할 수 있다.
 
  
 
